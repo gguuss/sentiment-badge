@@ -83,7 +83,7 @@
     }
 
     function convertToFlac(f, callback) {
-      worker = new Worker('/worker/EmsWorkerProxy.js');
+      worker = new Worker('/flac.js/worker/EmsWorkerProxy.js');
       // Listen for messages by the worker
       worker.onmessage = function(e) {
         if (e.data && e.data.reply === 'done') {
@@ -139,7 +139,7 @@
   <script>
     function initGapi(){
       gapi.client.load('speech', 'v1beta1');
-      gapi.client.setApiKey('AIzaSyAUM3uvnpTlBnaUWRRBpNJZ8jTMktJK2UI');
+      gapi.client.setApiKey('YOUR-API-KEY');
     }
     initAudio();
   </script>
