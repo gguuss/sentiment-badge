@@ -1,0 +1,148 @@
+<html>
+  <script src="//www.WEBRTC-Experiment.com/RecordRTC.js"></script>
+<body>
+  <script>
+    var audioRecorder;
+
+    function gotStream(audioStream) {
+      audioRecorder = RecordRTC(audioStream, {
+        recorderType: StereoAudioRecorder,
+        numberOfAudioChannels: 1
+      });
+    }
+
+    function initAudio() {
+      if (!navigator.getUserMedia)
+          navigator.getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+      if (!navigator.cancelAnimationFrame)
+          navigator.cancelAnimationFrame = navigator.webkitCancelAnimationFrame || navigator.mozCancelAnimationFrame;
+      if (!navigator.requestAnimationFrame)
+          navigator.requestAnimationFrame = navigator.webkitRequestAnimationFrame || navigator.mozRequestAnimationFrame;
+
+      navigator.getUserMedia({
+        "audio": {
+          "mandatory": {
+              "googEchoCancellation": "false",
+              "googAutoGainControl": "false",
+              "googNoiseSuppression": "false",
+              "googHighpassFilter": "false"
+          },
+          "optional": []
+        },
+      }, gotStream, function(e) {
+        alert('Error getting audio');
+        console.log(e);
+      });
+    }
+
+    function downloadResult(blob) {
+      var url = (window.URL || window.webkitURL).createObjectURL(blob);
+      var link = document.getElementById("save");
+      link.download="file.flac";
+      link.href = url;
+      link.click();
+    }
+
+    function transmitResult(blob) {
+      console.log("transmitting", blob);
+      sendBlobToSpeech(blob, 'flac', 8000);
+    }
+
+    function transmitRecording() {
+      var f = audioRecorder.blob;
+      f.name = 'file.wav';
+
+      // TODO: Why does this not work?
+      //sendBlobToSpeech(f, 'MULAW', 8000);
+
+      convertToFlac(f, transmitResult);
+    }
+
+    function saveRecording() {
+        var f = audioRecorder.blob;
+        f.name = 'file.wav';
+        convertToFlac(f, downloadResult);
+    }
+
+    function sendBlobToSpeech(blob, encoding, rate) {
+      var speechSender = new FileReader();
+      speechSender.addEventListener('loadend', function() {
+        gapi.client.speech.speech.syncrecognize({
+            config: {
+              encoding: encoding,
+              sampleRate: rate
+            },
+            audio : {
+              content: btoa(speechSender.result)
+            }
+          }).execute(function(r){
+            console.log(r);
+          });
+      });
+      speechSender.readAsBinaryString(blob);
+    }
+
+    function convertToFlac(f, callback) {
+      worker = new Worker('/worker/EmsWorkerProxy.js');
+      // Listen for messages by the worker
+      worker.onmessage = function(e) {
+        if (e.data && e.data.reply === 'done') {
+          for (fileName in e.data.values) {
+            // Pass the flac blob to the callback
+            callback(e.data.values[fileName].blob);
+          }
+        }
+      };
+
+      fr = new FileReader();
+      fr.addEventListener('loadend', function() {
+        var encodedName = "file.wav";
+
+        var args = [
+          encodedName
+        ];
+        console.log(args);
+        var inData = {};
+        inData[f.name] = new Uint8Array(fr.result);
+
+        var outData = {};
+        outData['file.flac'] = {
+          // Its MIME type
+          'MIME': 'audio/flac'
+        };
+
+        // Finally post all the data to the
+        // worker together with the "encode"
+        // command.
+        worker.postMessage({
+          command: 'encode',
+          args: args,
+          outData: outData,
+          fileData: inData
+        });
+      });
+
+      fr.readAsArrayBuffer(f);
+    }
+
+
+  </script>
+
+  <button onclick="audioRecorder.startRecording()">Start Recording</button>
+  <button onclick="audioRecorder.stopRecording()">Stop Recording</button>
+  <button onclick="transmitRecording()">Transmit Recording</button>
+  <button onclick="saveRecording()">Save Recording</button>
+  <a href="#save" id="save">Save</a>
+
+  <a style="display:none" id="save" href="">Save</a>
+
+  <script>
+    function initGapi(){
+      gapi.client.load('speech', 'v1beta1');
+      gapi.client.setApiKey('AIzaSyAUM3uvnpTlBnaUWRRBpNJZ8jTMktJK2UI');
+    }
+    initAudio();
+  </script>
+  <script src="https://apis.google.com/js/client:api.js?onload=initGapi"></script>
+</body>
+</html>
