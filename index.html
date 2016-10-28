@@ -1,189 +1,10 @@
 <html>
   <script src="//www.WEBRTC-Experiment.com/RecordRTC.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/cloudApi.js"></script>
+  <script src="js/main.js"></script>
 <body>
-  <script>
-    var audioRecorder;
-
-    function gotStream(audioStream) {
-      audioRecorder = RecordRTC(audioStream, {
-        recorderType: StereoAudioRecorder,
-        numberOfAudioChannels: 1
-      });
-    }
-
-    function initAudio() {
-      if (!navigator.getUserMedia)
-          navigator.getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
-      if (!navigator.cancelAnimationFrame)
-          navigator.cancelAnimationFrame = navigator.webkitCancelAnimationFrame || navigator.mozCancelAnimationFrame;
-      if (!navigator.requestAnimationFrame)
-          navigator.requestAnimationFrame = navigator.webkitRequestAnimationFrame || navigator.mozRequestAnimationFrame;
-
-      navigator.getUserMedia({
-        "audio": {
-          "mandatory": {
-              "googEchoCancellation": "false",
-              "googAutoGainControl": "false",
-              "googNoiseSuppression": "false",
-              "googHighpassFilter": "false"
-          },
-          "optional": []
-        },
-      }, gotStream, function(e) {
-        alert('Error getting audio');
-        console.log(e);
-      });
-    }
-
-    /**
-     * Records a brief chunk of audio, sets it up as flac, and passes it to
-     * the Speech API.
-     *
-     * @param timeout time, in milliseconds to record a chunk of audio for.
-     * @param keepGoing set to true to continue after transcribing the chunk.
-     */
-    function autoChunk(timeout) {
-      audioRecorder.startRecording();
-      setTimeout( function() {
-          audioRecorder.stopRecording();
-          transmitRecording();
-        }, timeout);
-    }
-
-    function downloadResult(blob) {
-      var url = (window.URL || window.webkitURL).createObjectURL(blob);
-      var link = document.getElementById("save");
-      link.download="file.flac";
-      link.href = url;
-      link.click();
-    }
-
-    function transmitResult(blob) {
-      console.log("transmitting", blob);
-      sendBlobToSpeech(blob, 'flac', 8000);
-
-      // Danger...
-      //audioRecorder.clearRecordedData();
-      autoChunk(5000);
-    }
-
-    function transmitRecording() {
-      var f = audioRecorder.blob;
-      f.name = 'file.wav';
-
-      // TODO: Why does this not work?
-      //sendBlobToSpeech(f, 'MULAW', 8000);
-
-      convertToFlac(f, transmitResult);
-    }
-
-    function saveRecording() {
-        var f = audioRecorder.blob;
-        f.name = 'file.wav';
-        convertToFlac(f, downloadResult);
-    }
-
-    function sendBlobToSpeech(blob, encoding, rate) {
-      var speechSender = new FileReader();
-      speechSender.addEventListener('loadend', function() {
-        gapi.client.speech.speech.syncrecognize({
-            config: {
-              encoding: encoding,
-              sampleRate: rate
-            },
-            audio : {
-              content: btoa(speechSender.result)
-            }
-          }).execute(function(r){
-            if (r.results && r.results[0]){
-              console.log('Found result(s):', r.results);
-              document.getElementById('console').innerText += '\n' +
-                  r.results[0].alternatives[0].transcript;
-              processSentiment(r.results[0].alternatives[0].transcript);
-            };
-          });
-      });
-      speechSender.readAsBinaryString(blob);
-    }
-
-    function processSentiment(content) {
-      gapi.client.language.documents.analyzeSentiment(
-        {
-            document: {
-              language: 'en-us',
-              content:content,
-              type: 'PLAIN_TEXT'
-          }
-        } ).execute(function(r) {
-          console.log("Sentiment for ", r);
-          console.log("I'm really checking", r.documentSentiment.magnitude);
-
-          // Default to positive polarity
-          var gVal = r.documentSentiment.magnitude * 255;
-          var rVal = 255 - gVal;
-
-          // Flip the colors if it's negative
-          if (r.documentSentiment.polarity == -1) {
-            rVal = r.documentSentiment.magnitude * 255;
-            gVal = 255 - rVal;
-          }
-
-          rVal = Math.floor(rVal);
-          gVal = Math.floor(gVal);
-
-          console.log("Setting BG to ", rVal, gVal);
-          var bgStr = 'rgb(' + rVal + ', ' + gVal + ', 0)';
-          console.log("document.getElementById('console').style.backgroundColor =" +bgStr);
-          document.getElementById('console').style.backgroundColor = bgStr;
-        });
-    }
-
-    function convertToFlac(f, callback) {
-      worker = new Worker('/flac.js/worker/EmsWorkerProxy.js');
-      // Listen for messages by the worker
-      worker.onmessage = function(e) {
-        if (e.data && e.data.reply === 'done') {
-          for (fileName in e.data.values) {
-            // Pass the flac blob to the callback
-            callback(e.data.values[fileName].blob);
-          }
-        }
-      };
-
-      fr = new FileReader();
-      fr.addEventListener('loadend', function() {
-        var encodedName = "file.wav";
-
-        var args = [
-          encodedName
-        ];
-        console.log(args);
-        var inData = {};
-        inData[f.name] = new Uint8Array(fr.result);
-
-        var outData = {};
-        outData['file.flac'] = {
-          // Its MIME type
-          'MIME': 'audio/flac'
-        };
-
-        // Finally post all the data to the
-        // worker together with the "encode"
-        // command.
-        worker.postMessage({
-          command: 'encode',
-          args: args,
-          outData: outData,
-          fileData: inData
-        });
-      });
-
-      fr.readAsArrayBuffer(f);
-    }
-
-
-  </script>
 
   <div style="display:none">
     <!-- hide for now -->
@@ -192,11 +13,15 @@
     <button onclick="transmitRecording()">Transmit Recording</button>
     <button onclick="saveRecording()">Save Recording</button>
   </div>
-  <button onclick="transmitRecording()">Start the demo</button>
+  <button id='toggleButton' disabled onclick="toggleTranscribe()">Start the demo</button>
   <a style="display:none" id="save" href="">Save</a>
   <pre id="console" style="background-color:#ACACAC; width:500px; height:100px"></pre>
 
   <script>
+    /**
+     *  Various Globals and initialization.
+     */
+    var audioRecorder;
     function initGapi(){
       console.log('loading gapi');
 
@@ -207,14 +32,15 @@
         if (xhr.readyState == 4 && xhr.status == "200") {
           var json = JSON.parse(xhr.responseText);
           gapi.client.setApiKey(json.apiKey);
-          console.log('Configured client, starting transcription.');
-          autoChunk(5000);
         }
       };
       xhr.send(null);
 
-      gapi.client.load('speech', 'v1beta1');
-      gapi.client.load('language', 'v1beta1');
+      gapi.client.load('speech', 'v1beta1', function() {
+        gapi.client.load('language', 'v1beta1', function() {
+          document.getElementById('toggleButton').disabled = false;
+        });
+      });
     }
     initAudio();
   </script>
