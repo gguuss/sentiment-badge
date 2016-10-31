@@ -1,3 +1,8 @@
 {
-  apiKey = 'YOUR_API_KEY'
+  "apiKey" = 'YOUR_API_KEY',
+  "firebaseApiKey": "YOUR_FIREBASE_API_KEY",
+  "firebaseAuthDomain": "YOURAPP.firebaseapp.com",
+  "firebaseDatabaseURL": "https://YOURAPP.firebaseio.com",
+  "firebaseStorageBucket": "",
+  "firebaseMessagingSenderId": ""
 }

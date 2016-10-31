@@ -62,5 +62,6 @@ function processSentiment(content) {
       var bgStr = 'rgb(' + rVal + ', ' + gVal + ', 0)';
       console.log("document.getElementById('console').style.backgroundColor =" +bgStr);
       document.getElementById('console').style.backgroundColor = bgStr;
+      updatePixel(rVal, gVal, 0);
     });
 }
