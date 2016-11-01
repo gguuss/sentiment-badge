@@ -22,22 +22,22 @@ var pixelData;
  *
  * @param fbConfig a hash containing properties for connecting to Firebase.
  */
-function initFirebase(fbConfig) {
+function initFirebase (fbConfig) {
   var config = {
     apiKey: fbConfig.firebaseApiKey,
     authDomain: fbConfig.firebaseAuthDomain,
     databaseURL: fbConfig.firebaseDatabaseURL,
     storageBucket: fbConfig.firebaseStorageBucket,
-    messagingSenderId: fbConfig.firebaseMessagingSenderId,
+    messagingSenderId: fbConfig.firebaseMessagingSenderId
   };
   firebase.initializeApp(config);
   pixelData = firebase.database();
 
-  setTimeout(function() { updatePixel(0,0,0); }, 500);
-  setTimeout(function() { updatePixel(255,0,0); }, 1000);
-  setTimeout(function() { updatePixel(0,255,0); }, 1300);
-  setTimeout(function() { updatePixel(0,0,255); }, 1600);
-  setTimeout(function() { updatePixel(0,0,0); }, 2500);
+  setTimeout(function () { updatePixel(0, 0, 0); }, 500);
+  setTimeout(function () { updatePixel(255, 0, 0); }, 1000);
+  setTimeout(function () { updatePixel(0, 255, 0); }, 1300);
+  setTimeout(function () { updatePixel(0, 0, 255); }, 1600);
+  setTimeout(function () { updatePixel(0, 0, 0); }, 2500);
 }
 
 /**
@@ -47,7 +47,7 @@ function initFirebase(fbConfig) {
  * @param g the green color value
  * @param b the blue color value
  */
-function updatePixel(r, g, b) {
+function updatePixel (r, g, b) {
   var pathR = 'rgbdata/r';
   var pathG = 'rgbdata/g';
   var pathB = 'rgbdata/b';

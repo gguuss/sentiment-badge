@@ -22,25 +22,25 @@
  * @param encoding the encoding type (e.g. 'flac' or 'LINEAR16').
  * @param rate the encoding rate, ideally 16000.
  */
-function sendBlobToSpeech(blob, encoding, rate) {
+function sendBlobToSpeech (blob, encoding, rate) {
   var speechSender = new FileReader();
-  speechSender.addEventListener('loadend', function() {
+  speechSender.addEventListener('loadend', function () {
     gapi.client.speech.speech.syncrecognize({
-        config: {
-          encoding: encoding,
-          sampleRate: rate
-        },
-        audio : {
-          content: btoa(speechSender.result)
-        }
-      }).execute(function(r){
-        if (r.results && r.results[0]){
-          console.log('Found result(s):', r.results);
-          document.getElementById('console').innerText += '\n' +
+      config: {
+        encoding: encoding,
+        sampleRate: rate
+      },
+      audio: {
+        content: btoa(speechSender.result)
+      }
+    }).execute(function (r) {
+      if (r.results && r.results[0]) {
+        console.log('Found result(s):', r.results);
+        document.getElementById('console').innerText += '\n' +
               r.results[0].alternatives[0].transcript;
-          processSentiment(r.results[0].alternatives[0].transcript);
-        };
-      });
+        processSentiment(r.results[0].alternatives[0].transcript);
+      }
+    });
   });
   speechSender.readAsBinaryString(blob);
 }
@@ -50,16 +50,16 @@ function sendBlobToSpeech(blob, encoding, rate) {
  *
  * @param content the text to process sentiment from.
  */
-function processSentiment(content) {
+function processSentiment (content) {
   gapi.client.language.documents.analyzeSentiment(
     {
-        document: {
-          language: 'en-us',
-          content:content,
-          type: 'PLAIN_TEXT'
+      document: {
+        language: 'en-us',
+        content: content,
+        type: 'PLAIN_TEXT'
       }
-    } ).execute(function(r) {
-      console.log("Sentiment for ", r);
+    }).execute(function (r) {
+      console.log('Sentiment for ', r);
       console.log("I'm really checking", r.documentSentiment.magnitude);
 
       // Default to positive polarity
@@ -75,9 +75,9 @@ function processSentiment(content) {
       rVal = Math.floor(rVal);
       gVal = Math.floor(gVal);
 
-      console.log("Setting BG to ", rVal, gVal);
+      console.log('Setting BG to ', rVal, gVal);
       var bgStr = 'rgb(' + rVal + ', ' + gVal + ', 0)';
-      console.log("document.getElementById('console').style.backgroundColor =" +bgStr);
+      console.log("document.getElementById('console').style.backgroundColor =" + bgStr);
       document.getElementById('console').style.backgroundColor = bgStr;
       updatePixel(rVal, gVal, 0);
     });

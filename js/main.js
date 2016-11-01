@@ -22,13 +22,13 @@
  * @param timeout time, in milliseconds to record a chunk of audio for.
  */
 var cantStopWontStop = false;
-function autoChunk(timeout) {
+function autoChunk (timeout) {
   if (cantStopWontStop) {
     audioRecorder.startRecording();
-    setTimeout( function() {
-        audioRecorder.stopRecording();
-        transmitRecording();
-      }, timeout);
+    setTimeout(function () {
+      audioRecorder.stopRecording();
+      transmitRecording();
+    }, timeout);
   }
 }
 
@@ -37,10 +37,10 @@ function autoChunk(timeout) {
  *
  * @param blob the Blob containing the flac file.
  */
-function downloadResult(blob) {
+function downloadResult (blob) {
   var url = (window.URL || window.webkitURL).createObjectURL(blob);
-  var link = document.getElementById("save");
-  link.download="file.flac";
+  var link = document.getElementById('save');
+  link.download = 'file.flac';
   link.href = url;
   link.click();
 }
@@ -50,19 +50,19 @@ function downloadResult(blob) {
  *
  * @param blob the Blob containing the flac file.
  */
-function transmitResult(blob) {
-  console.log("transmitting", blob);
+function transmitResult (blob) {
+  console.log('transmitting', blob);
   sendBlobToSpeech(blob, 'flac', 8000);
 
   // Danger...
-  //audioRecorder.clearRecordedData();
+  // audioRecorder.clearRecordedData();
   autoChunk(5000);
 }
 
 /**
  * Wrapper around transmitting the current audio to Google APIs.
  */
-function transmitRecording() {
+function transmitRecording () {
   var f = audioRecorder.blob;
   if (f) {
     f.name = 'file.wav';
@@ -72,7 +72,7 @@ function transmitRecording() {
   }
 
   // TODO: Why does this not work?
-  //sendBlobToSpeech(f, 'MULAW', 8000);
+  // sendBlobToSpeech(f, 'MULAW', 8000);
 
   convertToFlac(f, transmitResult);
 }
@@ -80,7 +80,7 @@ function transmitRecording() {
 /**
  * Enables / disables the demo.
  */
-function toggleTranscribe() {
+function toggleTranscribe () {
   cantStopWontStop = !cantStopWontStop;
   if (cantStopWontStop == true) {
     // Start the demo, change the button

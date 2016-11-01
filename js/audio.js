@@ -15,47 +15,50 @@
  * limitations under the License.
  */
 
-function gotStream(audioStream) {
+function gotStream (audioStream) {
   audioRecorder = RecordRTC(audioStream, {
     recorderType: StereoAudioRecorder,
     numberOfAudioChannels: 1
   });
 }
 
-function initAudio() {
-  if (!navigator.getUserMedia)
-      navigator.getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
-  if (!navigator.cancelAnimationFrame)
-      navigator.cancelAnimationFrame = navigator.webkitCancelAnimationFrame || navigator.mozCancelAnimationFrame;
-  if (!navigator.requestAnimationFrame)
-      navigator.requestAnimationFrame = navigator.webkitRequestAnimationFrame || navigator.mozRequestAnimationFrame;
+function initAudio () {
+  if (!navigator.getUserMedia) {
+    navigator.getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+  }
+  if (!navigator.cancelAnimationFrame) {
+    navigator.cancelAnimationFrame = navigator.webkitCancelAnimationFrame || navigator.mozCancelAnimationFrame;
+  }
+  if (!navigator.requestAnimationFrame) {
+    navigator.requestAnimationFrame = navigator.webkitRequestAnimationFrame || navigator.mozRequestAnimationFrame;
+  }
 
   navigator.getUserMedia({
-    "audio": {
-      "mandatory": {
-          "googEchoCancellation": "false",
-          "googAutoGainControl": "false",
-          "googNoiseSuppression": "false",
-          "googHighpassFilter": "false"
+    'audio': {
+      'mandatory': {
+        'googEchoCancellation': 'false',
+        'googAutoGainControl': 'false',
+        'googNoiseSuppression': 'false',
+        'googHighpassFilter': 'false'
       },
-      "optional": []
-    },
-  }, gotStream, function(e) {
+      'optional': []
+    }
+  }, gotStream, function (e) {
     alert('Error getting audio');
     console.log(e);
   });
 }
 
-function saveRecording() {
-    var f = audioRecorder.blob;
-    f.name = 'file.wav';
-    convertToFlac(f, downloadResult);
+function saveRecording () {
+  var f = audioRecorder.blob;
+  f.name = 'file.wav';
+  convertToFlac(f, downloadResult);
 }
 
-function convertToFlac(f, callback) {
+function convertToFlac (f, callback) {
   worker = new Worker('/flac.js/worker/EmsWorkerProxy.js');
   // Listen for messages by the worker
-  worker.onmessage = function(e) {
+  worker.onmessage = function (e) {
     if (e.data && e.data.reply === 'done') {
       for (fileName in e.data.values) {
         // Pass the flac blob to the callback
@@ -65,8 +68,8 @@ function convertToFlac(f, callback) {
   };
 
   fr = new FileReader();
-  fr.addEventListener('loadend', function() {
-    var encodedName = "file.wav";
+  fr.addEventListener('loadend', function () {
+    var encodedName = 'file.wav';
 
     var args = [
       encodedName
