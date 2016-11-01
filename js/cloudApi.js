@@ -36,8 +36,11 @@ function sendBlobToSpeech (blob, encoding, rate) {
     }).execute(function (r) {
       if (r.results && r.results[0]) {
         console.log('Found result(s):', r.results);
-        document.getElementById('console').innerText += '\n' +
-              r.results[0].alternatives[0].transcript;
+        //document.getElementById('console').innerText += '\n' +
+        //      r.results[0].alternatives[0].transcript;
+        document.getElementById('scrollconsole').value =
+              r.results[0].alternatives[0].transcript + '\n' +
+              document.getElementById('scrollconsole').value;
         processSentiment(r.results[0].alternatives[0].transcript);
       }
     });
