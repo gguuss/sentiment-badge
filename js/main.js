@@ -52,10 +52,11 @@ function downloadResult (blob) {
  */
 function transmitResult (blob) {
   console.log('transmitting', blob);
-  sendBlobToSpeech(blob, 'flac', 8000);
+  // Note: If you're seeing 400 errors, you probably have the wrong value
+  // here: the input on your computer can affect the sample rate.
+  sendBlobToSpeech(blob, 'flac', 44100);
 
-  // Danger...
-  // audioRecorder.clearRecordedData();
+  // TODO: Clip sound based on silences.
   autoChunk(5000);
 }
 
