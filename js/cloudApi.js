@@ -42,10 +42,18 @@ function sendBlobToSpeech (blob, encoding, rate) {
               r.results[0].alternatives[0].transcript + '\n' +
               document.getElementById('scrollconsole').value;
         processSentiment(r.results[0].alternatives[0].transcript);
+        searchGoogle(r.results[0].alternatives[0].transcript);
       }
     });
   });
   speechSender.readAsBinaryString(blob);
+}
+
+/**
+ * Uses the search proxy to query Google for the results.
+ */
+function searchGoogle (query) {
+  document.getElementById('searchframe').src='proxy.php?query=' + query;
 }
 
 /**
