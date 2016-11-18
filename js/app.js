@@ -22,6 +22,7 @@ function initGapi () {
   gapi.client.load('speech', 'v1beta1', function () {
     gapi.client.load('language', 'v1beta1', function () {
       document.getElementById('toggleButton').disabled = false;
+      document.getElementById('pushToTalk').disabled = false;
       initFirebase(gConfig);
     });
   });

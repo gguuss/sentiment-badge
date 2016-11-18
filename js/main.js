@@ -92,3 +92,15 @@ function toggleTranscribe () {
     document.getElementById('toggleButton').innerText = 'Start the demo';
   }
 }
+
+/**
+ * Helpers for press to talk and send.
+ */
+function pressBegin() {
+  audioRecorder.startRecording();
+}
+
+function pressEnd() {
+  audioRecorder.stopRecording();
+  transmitRecording();
+}
