@@ -10,7 +10,7 @@ Also proxies the transcribed result to Google search in an inline frame.
 
 1. Run the sample using the built-in PHP server:
 
-```bash
+```csh
     php -s localhost:4567
 ```
 
