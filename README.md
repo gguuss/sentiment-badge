@@ -9,7 +9,10 @@ Also proxies the transcribed result to Google search in an inline frame.
 # Running
 
 1. Run the sample using the built-in PHP server:
+
+```php
     php -s localhost:4567
+```
 
 2. Navigate to localhost:4567
 3. Click the start demo button and start talking
